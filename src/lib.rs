@@ -4,52 +4,40 @@ use std::time;
 pub type Float = f64;
 pub struct GenInfo {
     seed: Float,
-    resolution: (Float, Float),
+    cell_size: (Float, Float),
 }
 
 impl Default for GenInfo {
     fn default() -> Self {
         Self {
-            seed: prng(time::UNIX_EPOCH.elapsed().unwrap().as_secs_f64()),
-            resolution: (10.0, 10.0),
+            seed: prng(time::UNIX_EPOCH.elapsed().unwrap().as_millis()),
+            cell_size: (10.0, 10.0),
         }
     }
 }
 
-pub fn gen(
-    width: usize,
-    height: usize,
-    noisifier: impl Noisifier,
-    info: GenInfo,
-) -> Box<[Box<[Float]>]> {
-    (0..height)
-        .map(|j| {
-            (0..width)
-                .map(|i| {
-                    noisifier.noise(
-                        i as Float / info.resolution.0,
-                        j as Float / info.resolution.1,
-                        info.seed,
-                    )
-                })
-                .collect()
-        })
-        .collect()
-}
+pub fn prng(mut seed: u128) -> Float {
+    let rotation = mem::size_of::<u128>() / 2;
 
-pub fn prng(seed: Float) -> Float {
-    let mut seed = seed as u32;
-    let rotation = mem::size_of::<u32>() / 2;
-
-    seed = seed.wrapping_mul(3284157443);
     seed ^= seed << rotation | seed >> rotation;
-    seed = seed.wrapping_mul(1911520717);
-
-    (seed as f64) * 152338.34328
+    ((seed as Float * 9340932.598394).sin() + 1.0) / 2.0
 }
 
 pub trait Noisifier {
-    fn noise(&self, x: Float, y: Float, seed: Float) -> Float;
+    fn noise(&self, x: Float, y: Float, seed: u128) -> Float;
+
+    #[cfg(feature = "image")]
+    fn gen_image(&self, width: u32, height: u32, cell_size: u32) -> image::RgbImage {
+        image::RgbImage::from_fn(width, height, |i, j| {
+            let noise = self.noise(
+                i as Float / cell_size as Float,
+                j as Float / cell_size as Float,
+                time::UNIX_EPOCH.elapsed().unwrap().as_millis(),
+            );
+
+            [(noise * 255.0) as u8; 3].into()
+        })
+    }
 }
 
 pub enum Interpolation {
@@ -67,31 +55,31 @@ impl Interpolation {
 }
 
 pub struct Perlin {
-    interp: Interpolation,
+    interpolation: Interpolation,
 }
 
 impl Perlin {
-    pub fn new(interp: Interpolation) -> Self {
-        Self { interp }
+    pub fn new(interpolation: Interpolation) -> Self {
+        Self { interpolation }
     }
 }
 
 impl Noisifier for Perlin {
-    fn noise(&self, x: Float, y: Float, seed: Float) -> Float {
+    fn noise(&self, x: Float, y: Float, seed: u128) -> Float {
         let (x_floor, y_floor) = (x.floor(), y.floor());
         let (sx, sy) = (x - x_floor, y - y_floor);
         let gradient = |cx, cy| {
-            let value: Float = prng(cx * cy * seed) * 6.28;
+            let value: Float = prng((cx * seed as Float + cy * seed as Float) as u128) * 6.28;
             value.cos() * (x - cx) + value.sin() * (y - cy)
         };
 
-        self.interp.interpolate(
-            self.interp.interpolate(
+        self.interpolation.interpolate(
+            self.interpolation.interpolate(
                 gradient(x_floor, y_floor),
                 gradient(x_floor + 1.0, y_floor),
                 sx,
             ),
-            self.interp.interpolate(
+            self.interpolation.interpolate(
                 gradient(x_floor, y_floor + 1.0),
                 gradient(x_floor + 1.0, y_floor + 1.0),
                 sx,
@@ -105,7 +93,7 @@ impl Noisifier for Perlin {
 impl Default for Perlin {
     fn default() -> Self {
         Self {
-            interp: Interpolation::Linear,
+            interpolation: Interpolation::Linear,
         }
     }
 }
