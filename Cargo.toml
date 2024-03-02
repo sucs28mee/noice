@@ -7,7 +7,9 @@ edition = "2021"
 
 [features]
 default = ["image"]
-image = ["dep:image"]
+image = ["dep:png"]
 
 [dependencies]
-image = { version = "*", optional = true }
+min_max_traits = "0.1.0"
+num-traits = "0.2.18"
+png = { version = "*", optional = true }

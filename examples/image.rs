@@ -1,16 +1,13 @@
-use noice::noise_gen::{Perlin, White};
-use noice::Noisifier;
+use noice::noisifier::{GenerateInfo, Noisifier, Perlin, White};
 
 const SAVE_ERROR: &str = "Couldn't save to image";
 
 fn main() {
     Perlin::default()
-        .gen_image(1000, 1000, 10)
-        .save("examples/perlin.png")
+        .generate("examples/perlin.png", 1000, 1000, GenerateInfo::default())
         .expect(SAVE_ERROR);
-    
-    White::default()
-        .gen_image(1000, 1000, 10)
-        .save("examples/white.png")
+
+    White
+        .generate("examples/white.png", 1000, 1000, GenerateInfo::default())
         .expect(SAVE_ERROR);
 }
