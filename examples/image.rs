@@ -1,10 +1,16 @@
-use std::ops::Add;
+use noice::noise_gen::{Perlin, White};
+use noice::Noisifier;
 
-use noice::{Interpolation, Noisifier, Perlin};
+const SAVE_ERROR: &str = "Couldn't save to image";
 
 fn main() {
-    Perlin::new(Interpolation::Cubic)
+    Perlin::default()
         .gen_image(1000, 1000, 10)
-        .save("examples/noise.png")
-        .unwrap();
+        .save("examples/perlin.png")
+        .expect(SAVE_ERROR);
+    
+    White::default()
+        .gen_image(1000, 1000, 10)
+        .save("examples/white.png")
+        .expect(SAVE_ERROR);
 }
