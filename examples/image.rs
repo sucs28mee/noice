@@ -1,13 +1,15 @@
-use noice::noisifier::{GenerateInfo, Noisifier, Perlin, White};
-
-const SAVE_ERROR: &str = "Couldn't save to image";
+use noice::{ImageGenerateInfo, NoiseMaker, PerlinMaker, WhiteMaker, WorleyMaker};
 
 fn main() {
-    Perlin::default()
-        .generate("examples/perlin.png", 1000, 1000, GenerateInfo::default())
-        .expect(SAVE_ERROR);
+    PerlinMaker::default()
+        .generate_image("examples/perlin.png", ImageGenerateInfo::default())
+        .expect("Couldn't save perlin image.");
 
-    White
-        .generate("examples/white.png", 1000, 1000, GenerateInfo::default())
-        .expect(SAVE_ERROR);
+    WhiteMaker::default()
+        .generate_image("examples/white.png", ImageGenerateInfo::default())
+        .expect("Couldn't save white image.");
+
+    WorleyMaker::default()
+        .generate_image("examples/worley.png", ImageGenerateInfo::default())
+        .expect("Couldn't save worley image.");
 }

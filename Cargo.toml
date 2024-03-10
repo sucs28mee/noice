@@ -10,6 +10,4 @@ default = ["image"]
 image = ["dep:png"]
 
 [dependencies]
-min_max_traits = "0.1.0"
-num-traits = "0.2.18"
 png = { version = "*", optional = true }
