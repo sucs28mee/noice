@@ -4,8 +4,10 @@ use super::NoiseMaker;
 
 pub struct WorleyMaker {
     pub seed: u64,
+    /// Random points per cell.
     pub ppc: u64,
-    pub n: usize,
+    /// Count of closest random points added up to form the noise value.
+    pub n_closest: usize,
 }
 
 impl NoiseMaker for WorleyMaker {
@@ -34,8 +36,8 @@ impl NoiseMaker for WorleyMaker {
         distances.sort_by(|a, b| a.total_cmp(b));
         distances
             .into_iter()
-            .take(self.n)
-            .fold(0.0, |acc, x| acc + x.sqrt() / self.n as f64)
+            .take(self.n_closest)
+            .fold(0.0, |acc, x| acc + x.sqrt() / self.n_closest as f64)
     }
 }
 
@@ -43,7 +45,7 @@ impl Default for WorleyMaker {
     fn default() -> Self {
         Self {
             seed: rand::time_seed(),
-            n: 1,
+            n_closest: 1,
             ppc: 1,
         }
     }

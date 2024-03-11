@@ -12,9 +12,13 @@ use std::{fs::File, io, path::Path};
 
 #[cfg(feature = "image")]
 pub struct ImageGenerateInfo {
+    /// Width of the image.
     pub width: u32,
+    /// Height of the image.
     pub height: u32,
+    /// Pixel coordinates are multiplied by this value then fed to the noise maker.
     pub frequency: f64,
+    /// The layers of noise to apply onto the image.
     pub octaves: u64,
 }
 
@@ -52,7 +56,7 @@ pub trait NoiseMaker {
                         acc + self.noise(i as f64 * frequency, j as f64 * frequency)
                     });
 
-                    row.push((noise / octaves as f64 * 255.0) as u8);
+                    row.push((255.0 * noise / octaves as f64).clamp(0.0, 255.0) as u8);
                 }
 
                 row
@@ -61,6 +65,7 @@ pub trait NoiseMaker {
             .collect::<Box<[_]>>();
 
         let encoder = {
+            // All this should probably be done with a builder but it is what it is.
             let mut encoder = png::Encoder::new(File::create(path)?, width, height);
             encoder.set_color(png::ColorType::Grayscale);
             encoder.set_depth(png::BitDepth::Eight);
@@ -74,14 +79,17 @@ pub trait NoiseMaker {
 
 pub enum Interpolation {
     Linear,
-    Cubic,
+    Smoothstep,
+    Smootherstep,
 }
 
 impl Interpolation {
     pub fn interpolate(&self, a: f64, b: f64, t: f64) -> f64 {
+        let t = t.clamp(0.0, 1.0);
         match self {
             Interpolation::Linear => a + (b - a) * t,
-            Interpolation::Cubic => a + (b - a) * (3.0 - t * 2.0) * t * t,
+            Interpolation::Smoothstep => a + (b - a) * (3.0 - t * 2.0) * t * t,
+            Interpolation::Smootherstep => a + (b - a) * t * t * t * (t * (6.0 * t - 15.0) + 10.0),
         }
     }
 }

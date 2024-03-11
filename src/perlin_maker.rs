@@ -19,27 +19,27 @@ impl NoiseMaker for PerlinMaker {
             rot.cos() * (x - cx) + rot.sin() * (y - cy)
         };
 
-        self.interpolation.interpolate(
-            self.interpolation.interpolate(
-                gradient(x_floor, y_floor),
-                gradient(x_floor + 1., y_floor),
-                sx,
-            ),
-            self.interpolation.interpolate(
-                gradient(x_floor, y_floor + 1.),
-                gradient(x_floor + 1., y_floor + 1.),
-                sx,
-            ),
-            sy,
-        ) * 0.5
-            + 0.5
+        0.5 + 0.5
+            * self.interpolation.interpolate(
+                self.interpolation.interpolate(
+                    gradient(x_floor, y_floor),
+                    gradient(x_floor + 1., y_floor),
+                    sx,
+                ),
+                self.interpolation.interpolate(
+                    gradient(x_floor, y_floor + 1.),
+                    gradient(x_floor + 1., y_floor + 1.),
+                    sx,
+                ),
+                sy,
+            )
     }
 }
 
 impl Default for PerlinMaker {
     fn default() -> Self {
         Self {
-            interpolation: Interpolation::Cubic,
+            interpolation: Interpolation::Smoothstep,
             seed: rand::time_seed(),
         }
     }

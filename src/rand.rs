@@ -7,6 +7,8 @@ pub fn time_seed() -> u64 {
         .as_millis() as u64
 }
 
+/// Generates a uniform [`u64`] \
+/// Implementation by mister https://github.com/Depermitto
 pub fn random(mut seed: u64) -> u64 {
     let rot = (seed >> 59) as u32;
 
@@ -21,20 +23,21 @@ pub fn random(mut seed: u64) -> u64 {
     (x_high as u64) << 32 | x_low
 }
 
-pub fn hash(x: f64, y: f64, seed: f64) -> f64 {
-    let (mut x, mut y, mut seed) = (
-        (x * 0.131).fract(),
-        (y * 0.131).fract(),
-        (seed * 0.131).fract(),
+/// Adapted from https://www.shadertoy.com/view/4djSRW
+pub fn hash(x: f64, y: f64, z: f64) -> f64 {
+    let (mut x, mut y, mut z) = (
+        (x * 189.232).fract(),
+        (y * 93.631).fract(),
+        (z * 12.333).fract(),
     );
 
     let a = 36.32;
-    let dot = x * (seed + a) + y * (y + a) + seed * (x + a);
+    let dot = x * (z + a) + y * (y + a) + z * (x + a);
     x += dot;
     y += dot;
-    seed += dot;
+    z += dot;
 
-    ((x + y) * seed).fract()
+    ((x + y) * z).fract()
 }
 
 pub fn uniform_float(seed: u64) -> f64 {
